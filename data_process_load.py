@@ -3,7 +3,7 @@ import yaml
 import torch
 import chardet
 from tokenizer_fun import tokenizer_char
-
+from torch.utils.data import Dataset, DataLoader
     
 with open('config.yaml', 'r', encoding='utf-8') as yaml_file:
     config = yaml.safe_load(yaml_file)
@@ -58,6 +58,7 @@ def get_dataloader(data_path):
         text = f.read()
     encode, decode, vocab_size = tokenizer_char(text=text)
     assert vocab_size == config_vocab_size
+    print (f'vocab size: {vocab_size}')
     # convert data into array
     data = torch.tensor(encode(text), dtype=torch.long)
     n = int(0.9*len(data))
@@ -71,7 +72,70 @@ def get_dataloader(data_path):
         idx = torch.randint(len(data) - seq_len , (batch_size, ))
         x = torch.stack([data[i: i+seq_len] for i in idx])
         y = torch.stack([data[i+1: i+seq_len+1] for i in idx])
-        x, y = x.to(device), y.to(device)
+        # x, y = x.to(device), y.to(device)
+        x, y = x.cuda(), y.cuda()
         return x, y
 
     return get_batch, encode, decode
+
+
+class TextDataset(Dataset):
+    def __init__(self, data):
+        self.data = data
+        self.seq_len = seq_len
+
+    def __len__(self):
+        return len(self.data) - self.seq_len
+
+    def __getitem__(self, idx):
+        x = self.data[idx: idx + self.seq_len]
+        y = self.data[idx + 1: idx + self.seq_len + 1]
+        return x, y
+
+def get_dataloader_ds(data_path, batch_size):
+    with open(data_path, 'r', encoding='utf-8') as f:
+        text = f.read()
+    
+    encode, decode, vocab_size = tokenizer_char(text=text)
+    assert vocab_size == config_vocab_size
+    print(f'vocab size: {vocab_size}')
+    
+    # Convert data into tensor
+    data = torch.tensor(encode(text), dtype=torch.long)
+    n = int(0.9 * len(data))
+    train_data = data[:n]
+    test_data = data[n:]
+
+    # Create datasets
+    train_dataset = TextDataset(train_data)
+    test_dataset = TextDataset(test_data)
+
+    # Create dataloaders
+    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=4)
+    test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, num_workers=4)
+
+    return train_loader, test_loader, encode, decode
+
+#
+#def get_dataloader_ds(data_path):
+#    with open(data_path, 'r', encoding='utf-8') as f:
+#        text = f.read()
+#    encode, decode, vocab_size = tokenizer_char(text=text)
+#    assert vocab_size == config_vocab_size
+#    print (f'vocab size: {vocab_size}')
+#    # convert data into array
+#    data = torch.tensor(encode(text), dtype=torch.long)
+#    n = int(0.9*len(data))
+#    train_data = data[:n]
+#    test_data = data[n:]
+#
+#    # build a dataloader
+#    def get_batch(split='train'):
+#        # generate a mini batch of data of x and y
+#        data = train_data if split == 'train' else test_data
+#        idx = torch.randint(len(data) - seq_len , (batch_size, ))
+#        x = torch.stack([data[i: i+seq_len] for i in idx])
+#        y = torch.stack([data[i+1: i+seq_len+1] for i in idx])
+#        # x, y = x.to(device), y.to(device)
+#        x, y = x.cuda(), y.cuda()
+#        return x, y
