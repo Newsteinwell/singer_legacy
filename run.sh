@@ -1,0 +1,1 @@
+deepspeed --master_port=29501 --include localhost:3,4,5,6 main_singer_DP.py | tee log.txt 2>&1
