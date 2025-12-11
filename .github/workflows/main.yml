@@ -1,0 +1,60 @@
+name: 🧪 基础CI (代码检查与单元测试)
+
+on: # 触发条件
+  push: # 推送代码时触发
+    branches: [ main, develop ] # 可根据需要增减分支
+  pull_request: # 创建或更新PR时触发
+    branches: [ main ]
+
+jobs:
+  test: # 只有一个名为“test”的任务
+    runs-on: ubuntu-latest # 使用GitHub提供的最新版Ubuntu虚拟机
+    strategy:
+      matrix: # 测试矩阵，这里定义Python版本
+        python-version: ['3.9', '3.10'] # 可修改为你项目支持的版本
+
+    steps:
+    # 1. 检出代码
+    - name: 📥 检出代码
+      uses: actions/checkout@v4
+
+    # 2. 设置Python环境
+    - name: 🐍 设置 Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+        cache: 'pip' # 启用pip缓存，加速依赖安装
+
+    # 3. 安装项目依赖
+    - name: 📦 安装依赖
+      run: |
+        pip install --upgrade pip
+        # 假设你的项目依赖定义在 requirements.txt 或 pyproject.toml 中
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+        if [ -f pyproject.toml ]; then pip install -e .; fi
+        # 安装开发工具
+        pip install black flake8 pytest pytest-cov
+
+    # 4. 代码风格检查 (Black)
+    - name: 🖤 使用 Black 检查代码格式
+      run: |
+        black --check --diff .
+
+    # 5. 代码规范检查 (Flake8)
+    - name: 👀 使用 Flake8 进行代码规范检查
+      run: |
+        flake8 . --count --show-source --statistics
+
+    # 6. 运行单元测试并收集覆盖率
+    # - name: ✅ 使用 Pytest 运行单元测试
+    #   run: |
+    #     pytest tests/ -v --cov=./ --cov-report=xml --cov-report=term-missing
+    #   # 如果测试失败，继续生成报告，但整个Job会失败
+    #   continue-on-error: false
+
+    # 7. (可选) 上传测试覆盖率报告到 Codecov
+    # - name: 📤 上传覆盖率报告到 Codecov
+    #   uses: codecov/codecov-action@v3
+    #   with:
+    #     file: ./coverage.xml # 覆盖率文件路径
+    #     fail_ci_if_error: false # 即使上传失败也不阻塞CI
