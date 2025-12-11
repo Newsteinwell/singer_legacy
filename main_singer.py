@@ -14,4 +14,4 @@ if __name__ == '__main__':
     else:
         model_filename = './ckpts/model_merged_file_20240525_095927.pth'
         print ('start inference ... ')
-        inference(Model=BigramLanguageModel, model_filename=model_filename, input_text='please write a pome for me', max_new_tokens=1000)
+        inference(Model=BigramLanguageModel, model_filename=model_filename, input_text='请给我写一首诗', max_new_tokens=1000)
