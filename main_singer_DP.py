@@ -28,3 +28,4 @@ if __name__ == '__main__':
         inference_ds(Model=BigramLanguageModel, model_filename=model_filename, input_text='单身情歌', max_new_tokens=1000)
         rank = torch.distributed.get_rank()
         print (f'rank: {rank}, inference time is {time.time() - start_time:.2f} s')
+        print (f'rank: {rank}, inference time is {time.time() - start_time:.2f} s')
