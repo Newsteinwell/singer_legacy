@@ -2,7 +2,7 @@ name: 🧪 基础CI (代码检查与单元测试)
 
 on: # 触发条件
   push: # 推送代码时触发
-    branches: [ main, develop ] # 可根据需要增减分支
+    branches: [ main, feature_* ] # 可根据需要增减分支
   pull_request: # 创建或更新PR时触发
     branches: [ main ]
 
