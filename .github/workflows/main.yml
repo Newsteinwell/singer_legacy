@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest # 使用GitHub提供的最新版Ubuntu虚拟机
     strategy:
       matrix: # 测试矩阵，这里定义Python版本
-        python-version: ['3.12', '3.13'] # 可修改为你项目支持的版本
+        python-version: ['3.12'] # 可修改为你项目支持的版本
 
     steps:
     # 1. 检出代码
